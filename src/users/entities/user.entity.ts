@@ -7,13 +7,19 @@ import {
 
 const databaseType = 'mongo';
 @Entity({ database: databaseType })
-export class Todo extends BaseEntity {
-  @Column()
-  title: string;
-
-  @Column()
-  status: string;
-
+export class User extends BaseEntity {
   @getIdColumnDecorator()
   _id: string;
+
+  @Column()
+  firstName: string;
+
+  @Column()
+  lastName: string;
+
+  @Column()
+  email: string;
+
+  @Column()
+  password: string;
 }
