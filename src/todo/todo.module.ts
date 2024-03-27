@@ -33,21 +33,12 @@ import { TodosController } from './todo.controller';
 import { TodosService } from './todo.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Todo } from './entities/todo.entity';
-import { MongoModule } from 'src/databases/mongo.module';
-import { PostgresModule } from 'src/databases/postgres.module';
-import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot(), // Import ConfigModule.forRoot() in your root module
     TypeOrmModule.forFeature([Todo]),
-    determineDatabaseModule(),
   ],
   controllers: [TodosController],
   providers: [TodosService],
 })
 export class TodoModule {}
-
-function determineDatabaseModule() {
-  return process.env.DB_TYPE === 'postgres' ? PostgresModule : MongoModule;
-}

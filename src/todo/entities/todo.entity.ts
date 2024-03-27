@@ -5,7 +5,7 @@ import {
   Column,
 } from 'typeorm';
 
-const databaseType = 'mongo';
+const databaseType = process.env.DB_TYPE;
 @Entity({ database: databaseType })
 export class Todo extends BaseEntity {
   @Column()

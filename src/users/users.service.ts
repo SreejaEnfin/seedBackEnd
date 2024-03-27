@@ -1,31 +1,35 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-
-export type User = any;
+import { Repository } from 'typeorm';
+import { User } from './entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from '@node-rs/bcrypt';
 
 @Injectable()
 export class UsersService {
-  private readonly users = [
-    {
-      userId: 1,
-      username: 'john',
-      password: 'changeme',
-    },
-    {
-      userId: 2,
-      username: 'maria',
-      password: 'guess',
-    },
-  ];
+  constructor( @InjectRepository(User) private userRepository: Repository<User>, ) {}
 
-  async findOne(username: string): Promise<User | undefined> {
-    return this.users.find(user => user.username === username);
+  async findOne(_id: any): Promise<User> {
+    return this.userRepository.findOne(_id);
   }
 
-  // create(createUserDto: CreateUserDto) {
-  //   return 'This action adds a new user';
-  // }
+  async findOneByEmail(email: string): Promise<User> {
+    return this.userRepository.findOne({ where: { email } });
+  }
+
+  async create(createUserDto: CreateUserDto) {
+    const { email, password } = createUserDto;
+    const user = await this.userRepository.findOne({ where: { email } });
+    if(user) {
+      throw new BadRequestException('User already exists')
+    }
+    const saltRounds = 10;
+    const hash = await bcrypt.hash(password, saltRounds)
+    createUserDto.password = hash;
+    const newUser = await this.userRepository.save(createUserDto);
+    return { ...newUser, password: undefined };
+  }
 
   // findAll() {
   //   return `This action returns all users`;

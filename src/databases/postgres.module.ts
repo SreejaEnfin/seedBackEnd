@@ -7,7 +7,7 @@ import { getMetadataArgsStorage } from 'typeorm';
   imports: [
     ConfigModule,
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [],
       useFactory: async (configService: ConfigService) => {
         const entities = getMetadataArgsStorage()
           // eslint-disable-next-line @typescript-eslint/ban-types

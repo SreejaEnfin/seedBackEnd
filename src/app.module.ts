@@ -4,20 +4,32 @@ import { AppService } from './app.service';
 import { TodoModule } from './todo/todo.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ResponseInterceptor } from './interceptors/response.interceptor';
+import { determineDatabaseModule } from './utils/helper';
 @Module({
-  imports: [TodoModule, AuthModule, UsersModule], // importing TodoModule
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, }), 
+    determineDatabaseModule(), 
+    TodoModule, 
+    AuthModule, 
+    UsersModule, 
+  ], 
   controllers: [AppController],
   providers: [
+    ConfigService,
     AppService,
     JwtService,
-    ConfigService,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseInterceptor,
     },
   ],
 })

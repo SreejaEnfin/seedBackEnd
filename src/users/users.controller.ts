@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Request } from '@nes
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Public } from 'src/auth/auth.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -9,13 +10,14 @@ export class UsersController {
 
   @Get('profile')
   getProfile(@Request() req) {
-    return req.user;
+    return this.usersService.findOne(req.user._id);
   }
 
-  // @Post()
-  // create(@Body() createUserDto: CreateUserDto) {
-  //   return this.usersService.create(createUserDto);
-  // }
+  @Public()
+  @Post()
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
+  }
 
   // @Get()
   // findAll() {

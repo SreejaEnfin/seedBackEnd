@@ -1,7 +1,7 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
-
+import * as bcrypt from '@node-rs/bcrypt';
 @Injectable()
 export class AuthService {
   constructor(
@@ -10,14 +10,17 @@ export class AuthService {
   ) {}
 
   async signIn(
-    username: string,
-    pass: string,
+    email: string,
+    password: string,
   ): Promise<{ access_token: string }> {
-    const user = await this.usersService.findOne(username);
-    if (user?.password !== pass) {
-      throw new UnauthorizedException();
+    const user = await this.usersService.findOneByEmail(email);
+    if (!user) {
+      throw new BadRequestException('User does not exist');
     }
-    const payload = { sub: user.userId, username: user.username };
+    if (!await bcrypt.compare(password, user?.password)) {
+      throw new BadRequestException('Invalid password');
+    }
+    const payload = { _id: user._id, firstName: user.firstName, lastName: user.lastName };
     return {
       access_token: await this.jwtService.signAsync(payload),
     };

@@ -7,7 +7,6 @@ import { getMetadataArgsStorage } from 'typeorm';
   imports: [
     ConfigModule,
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
         const entities = getMetadataArgsStorage()
           .tables.map((tbl) => tbl.target as Type<any>)
