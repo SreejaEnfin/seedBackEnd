@@ -8,7 +8,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthGuard } from './auth/auth.guard';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ResponseInterceptor } from './interceptors/response.interceptor';
+import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { determineDatabaseModule } from './utils/helper';
 @Module({
   imports: [
@@ -29,7 +29,7 @@ import { determineDatabaseModule } from './utils/helper';
     },
     {
       provide: APP_INTERCEPTOR,
-      useClass: ResponseInterceptor,
+      useClass: TransformInterceptor,
     },
   ],
 })

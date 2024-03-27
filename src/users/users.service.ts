@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from '@node-rs/bcrypt';
+import { getCache } from 'memcachelibrarybeta';
 
 @Injectable()
 export class UsersService {
@@ -15,7 +16,9 @@ export class UsersService {
   }
 
   async findOneByEmail(email: string): Promise<User> {
-    return this.userRepository.findOne({ where: { email } });
+    // return this.userRepository.findOne({ where: { email } });
+    const getUserByEmail = (emailId: string) => this.userRepository.findOne({ where: { email: emailId } });
+    return getCache(`${email}`, getUserByEmail, email);
   }
 
   async create(createUserDto: CreateUserDto) {

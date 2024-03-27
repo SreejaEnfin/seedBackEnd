@@ -29,6 +29,7 @@
     "@nestjs/typeorm": "^10.0.2",
     "@node-rs/bcrypt": "^1.10.1",
     "dotenv": "^16.4.5",
+    "memcachelibrarybeta": "^1.0.0",
     "mongodb": "^5.9.2",
     "pg": "^8.11.3",
     "reflect-metadata": "^0.2.0",
