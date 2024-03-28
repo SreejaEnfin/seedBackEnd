@@ -10,14 +10,16 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { determineDatabaseModule } from './utils/helper';
+import { RoleModule } from './role/role.module';
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true, }), 
-    determineDatabaseModule(), 
-    TodoModule, 
-    AuthModule, 
-    UsersModule, 
-  ], 
+    ConfigModule.forRoot({ isGlobal: true }),
+    determineDatabaseModule(),
+    TodoModule,
+    AuthModule,
+    UsersModule,
+    RoleModule,
+  ],
   controllers: [AppController],
   providers: [
     ConfigService,

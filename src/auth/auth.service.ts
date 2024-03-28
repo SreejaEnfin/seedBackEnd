@@ -6,7 +6,7 @@ import * as bcrypt from '@node-rs/bcrypt';
 export class AuthService {
   constructor(
     private usersService: UsersService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
   ) {}
 
   async signIn(
@@ -17,10 +17,14 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException('User does not exist');
     }
-    if (!await bcrypt.compare(password, user?.password)) {
+    if (!(await bcrypt.compare(password, user?.password))) {
       throw new BadRequestException('Invalid password');
     }
-    const payload = { _id: user._id, firstName: user.firstName, lastName: user.lastName };
+    const payload = {
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
     return {
       access_token: await this.jwtService.signAsync(payload),
     };

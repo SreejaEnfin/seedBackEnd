@@ -9,7 +9,9 @@ import { getCache } from 'memcachelibrarybeta';
 
 @Injectable()
 export class UsersService {
-  constructor( @InjectRepository(User) private userRepository: Repository<User>, ) {}
+  constructor(
+    @InjectRepository(User) private userRepository: Repository<User>,
+  ) {}
 
   async findOne(_id: any): Promise<User> {
     return this.userRepository.findOne(_id);
@@ -17,26 +19,27 @@ export class UsersService {
 
   async findOneByEmail(email: string): Promise<User> {
     // return this.userRepository.findOne({ where: { email } });
-    const getUserByEmail = (emailId: string) => this.userRepository.findOne({ where: { email: emailId } });
+    const getUserByEmail = (emailId: string) =>
+      this.userRepository.findOne({ where: { email: emailId } });
     return getCache(`${email}`, getUserByEmail, email);
   }
 
   async create(createUserDto: CreateUserDto) {
     const { email, password } = createUserDto;
     const user = await this.userRepository.findOne({ where: { email } });
-    if(user) {
-      throw new BadRequestException('User already exists')
+    if (user) {
+      throw new BadRequestException('User already exists');
     }
     const saltRounds = 10;
-    const hash = await bcrypt.hash(password, saltRounds)
+    const hash = await bcrypt.hash(password, saltRounds);
     createUserDto.password = hash;
     const newUser = await this.userRepository.save(createUserDto);
     return { ...newUser, password: undefined };
   }
 
-  // findAll() {
-  //   return `This action returns all users`;
-  // }
+  findAll() {
+    return this.userRepository.find();
+  }
 
   // findOne(id: number) {
   //   return `This action returns a #${id} user`;

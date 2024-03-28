@@ -4,7 +4,9 @@ import { connectCache } from 'memcachelibrarybeta';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  await connectCache({ server: process.env.MEMCACHE_CONNECTION_STRING })
-  await app.listen(process.env.PORT || 3000);
+  await connectCache({ server: process.env.MEMCACHE_CONNECTION_STRING });
+  await app.listen(process.env.PORT || 3000).then(() => {
+    console.log(`Server running on port ${process.env.PORT}`);
+  });
 }
 bootstrap();
