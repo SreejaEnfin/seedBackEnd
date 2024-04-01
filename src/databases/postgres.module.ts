@@ -15,8 +15,6 @@ import { getMetadataArgsStorage } from 'typeorm';
           .filter((entity) =>
             entity.toString().toLowerCase().includes('entity'),
           );
-
-        console.log(configService.get('DB_TYPE'), 'hiiiiiiiiiiiiii');
         return {
           type: 'postgres',
           host: configService.get('POSTGRES_HOST'),

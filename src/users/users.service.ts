@@ -1,11 +1,15 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from '@node-rs/bcrypt';
 import { getCache } from 'memcachelibrarybeta';
+import {
+  IPaginationOptions,
+  Pagination,
+  paginate,
+} from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class UsersService {
@@ -13,8 +17,9 @@ export class UsersService {
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
-  async findOne(_id: any): Promise<User> {
-    return this.userRepository.findOne(_id);
+  async findOne(_id: any): Promise<any> {
+    const res = await this.userRepository.findOne({ where: { _id: _id } });
+    return { ...res, password: undefined };
   }
 
   async findOneByEmail(email: string): Promise<User> {
@@ -37,19 +42,12 @@ export class UsersService {
     return { ...newUser, password: undefined };
   }
 
-  findAll() {
-    return this.userRepository.find();
+  async findAll() {
+    const user = await this.userRepository.find();
+    return { ...user, password: undefined };
   }
 
-  // findOne(id: number) {
-  //   return `This action returns a #${id} user`;
-  // }
-
-  // update(id: number, updateUserDto: UpdateUserDto) {
-  //   return `This action updates a #${id} user`;
-  // }
-
-  // remove(id: number) {
-  //   return `This action removes a #${id} user`;
-  // }
+  paginate(options: IPaginationOptions): Promise<Pagination<User>> {
+    return paginate<User>(this.userRepository, options);
+  }
 }

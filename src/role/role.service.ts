@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { CreateRoleDto } from './dto/create-role.dto';
 import { Role } from './entities/role.entity';
@@ -15,17 +11,13 @@ export class RoleService {
     @InjectRepository(Role) private roleRepository: Repository<Role>,
   ) {}
 
-  async create(createRole: any): Promise<any> {
-    try {
-      if (!createRole) {
-        throw new BadRequestException('Please provide details');
-      } else {
-        const user = this.roleRepository.save(createRole);
-        return user;
-      }
-    } catch (error) {
-      throw new Error(error);
-    }
+  async create(createRole: CreateRoleDto) {
+    const { name, acl } = createRole;
+    const role = new Role();
+
+    role.name = name;
+    role.acl = JSON.stringify(acl);
+    return await this.roleRepository.save(role);
   }
 
   findAll() {

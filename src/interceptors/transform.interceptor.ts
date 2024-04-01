@@ -26,7 +26,6 @@ export class TransformInterceptor<T>
 
     // To do
     const domain = req.get('Domain');
-    // console.log(domain);
     if (domain) {
       initializeCache(domain);
     }
