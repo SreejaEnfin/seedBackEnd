@@ -20,5 +20,8 @@ export class User extends BaseEntity {
   password: string;
 
   @Column()
-  roleId: string;
+  acl: string;
+
+  @Column()
+  roleIds: string[];
 }

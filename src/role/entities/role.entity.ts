@@ -11,6 +11,6 @@ export class Role extends BaseEntity {
   @Column()
   name: string;
 
-  @Column('text')
+  @Column()
   acl: string;
 }

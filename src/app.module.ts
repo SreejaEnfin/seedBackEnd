@@ -11,6 +11,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { determineDatabaseModule } from './utils/helper';
 import { RoleModule } from './role/role.module';
+import { CaslModule } from './casl/casl.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -19,6 +20,7 @@ import { RoleModule } from './role/role.module';
     AuthModule,
     UsersModule,
     RoleModule,
+    CaslModule,
   ],
   controllers: [AppController],
   providers: [

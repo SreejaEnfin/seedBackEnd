@@ -3,12 +3,17 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateRoleDto } from './dto/create-role.dto';
 import { Role } from './entities/role.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, MongoRepository, Repository } from 'typeorm';
+import { ObjectId } from 'mongodb';
+import { determineDB } from 'src/utils/helper';
+
+const isMongoDB = determineDB() === 'mongo';
 
 @Injectable()
 export class RoleService {
   constructor(
     @InjectRepository(Role) private roleRepository: Repository<Role>,
+    @InjectRepository(Role) private mongoRoleRepository: MongoRepository<Role>,
   ) {}
 
   async create(createRole: CreateRoleDto) {
@@ -22,6 +27,19 @@ export class RoleService {
 
   findAll() {
     return this.roleRepository.find();
+  }
+
+  async findByIds(ids: string[]) {
+    let roles = [];
+    if(isMongoDB) {
+      roles = await this.mongoRoleRepository.find({ where: { _id: { $in: ids.map(i => new ObjectId(i)) } } });
+    } else {
+      roles = await this.roleRepository.find({ where: { _id: In(ids) } });
+    }
+    for(let role of roles) {
+      role.acl = JSON.parse(role.acl);
+    }
+    return roles;
   }
 
   async findOne(_id: any) {

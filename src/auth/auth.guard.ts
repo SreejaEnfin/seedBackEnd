@@ -9,12 +9,16 @@ import { Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from './auth.decorator';
+import { UsersService } from 'src/users/users.service';
+import { RoleService } from 'src/role/role.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
   constructor(
     private jwtService: JwtService,
     private configService: ConfigService,
+    private usersService: UsersService,
+    private roleService: RoleService,
     private reflector: Reflector,
   ) {}
 
@@ -39,8 +43,37 @@ export class AuthGuard implements CanActivate {
       });
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers
-      request['user'] = payload;
-    } catch {
+      let aclObject = {};
+      const user = await this.usersService.findOne(payload._id);
+
+      if(user.roleIds.length > 0) {
+        const roles = await this.roleService.findByIds(user.roleIds);
+  
+        const aclArray = [user.acl, ...roles.map(r => r.acl)].filter(x => x);
+  
+        for(const acl of aclArray) {
+          const aclKeys = Object.keys(acl);
+          for(const aclKey of aclKeys) {
+            if(!aclObject[aclKey]) {
+              aclObject[aclKey] = {};
+            }
+            const aclFeatKeys = Object.keys(acl[aclKey]);
+            for(const aclFeatKey of aclFeatKeys) {
+              if(!aclObject[aclKey][aclFeatKey]) {
+                aclObject[aclKey][aclFeatKey] = { ...acl[aclKey][aclFeatKey] };
+              } else if(acl[aclKey][aclFeatKey].permission) {
+                aclObject[aclKey][aclFeatKey].permission = true;
+              }
+            }
+          }
+        }
+      }
+
+      // console.log(aclObject);
+      
+      request['user'] = { ...payload, acl: aclObject};
+    } catch(e) {
+      console.log(e)
       throw new UnauthorizedException();
     }
     return true;
