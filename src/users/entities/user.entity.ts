@@ -19,9 +19,9 @@ export class User extends BaseEntity {
   @Column()
   password: string;
 
-  @Column('text')
+  @Column({ type: 'text', nullable: true })
   acl: string;
 
-  @Column('simple-array')
+  @Column({ type: 'simple-array', nullable: true })
   roleIds: string[];
 }

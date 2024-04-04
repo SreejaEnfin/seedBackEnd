@@ -46,7 +46,7 @@ export class AuthGuard implements CanActivate {
       let aclObject = {};
       const user = await this.usersService.findOne(payload._id);
 
-      if(user.roleIds.length > 0) {
+      if(user.roleIds?.length > 0) {
         const roles = await this.roleService.findByIds(user.roleIds);
   
         const aclArray = [user.acl, ...roles.map(r => r.acl)].filter(x => x);

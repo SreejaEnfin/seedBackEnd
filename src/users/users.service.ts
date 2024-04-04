@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from '@node-rs/bcrypt';
 import { delCache, getCache } from 'memcachelibrarybeta';
 import { determineDB } from 'src/utils/helper';
+import { ObjectId } from 'mongodb';
 
 const isMongoDB = determineDB() === 'mongo';
 import {
@@ -23,7 +24,12 @@ export class UsersService {
 
   async findOne(_id: any): Promise<User> {
     // await delCache(_id)
-    const getUserById = (_id: any) => this.userRepository.findOne(_id);
+    const getUserById = (_id: any) => { 
+      if(isMongoDB) {
+        return this.mongoUserRepository.findOne({ where: { _id: new ObjectId(_id) } });
+      } 
+      return this.userRepository.findOne({ where: { _id: _id } }); 
+    }
     return getCache(_id, getUserById, _id);
   }
 
