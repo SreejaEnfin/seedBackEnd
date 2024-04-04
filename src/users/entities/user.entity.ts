@@ -19,7 +19,7 @@ export class User extends BaseEntity {
   @Column()
   password: string;
 
-  @Column()
+  @Column('text')
   acl: string;
 
   @Column('simple-array')
