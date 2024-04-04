@@ -22,6 +22,6 @@ export class User extends BaseEntity {
   @Column()
   acl: string;
 
-  @Column()
+  @Column('simple-array')
   roleIds: string[];
 }
