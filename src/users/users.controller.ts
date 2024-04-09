@@ -3,27 +3,29 @@ import {
   Get,
   Post,
   Body,
-  Patch,
-  Param,
-  Delete,
   Request,
   Query,
   DefaultValuePipe,
   ParseIntPipe,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, UserDto } from './dto/create-user.dto';
 import { Public } from 'src/auth/auth.decorator';
-import { Pagination } from 'nestjs-typeorm-paginate';
-import { User } from './entities/user.entity';
+import { IPaginationOptions, Pagination } from 'nestjs-typeorm-paginate';
+import { ObjectId } from 'mongodb';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get('profile')
-  getProfile(@Request() req) {
-    return this.usersService.findOne(req.user._id);
+  getProfile(@Request() request) {
+    if (process.env.DB_TYPE === 'postgres') {
+      return this.usersService.findOne(request.user._id);
+    } else {
+      const objectId = new ObjectId(request.user._id);
+      return this.usersService.findOne(objectId);
+    }
   }
 
   @Public()
@@ -33,14 +35,30 @@ export class UsersController {
   }
   @Public()
   @Get()
-  findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit = 10,
-  ): Promise<Pagination<User>> {
+  async findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number = 1,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number = 12,
+    @Query('search') search?: string,
+  ): Promise<Pagination<UserDto>> {
     limit = limit > 100 ? 100 : limit;
-    return this.usersService.paginate({
+    const options: IPaginationOptions = {
       page,
       limit,
-    });
+    };
+
+    let users: Pagination<UserDto>;
+
+    if (search) {
+      users = await this.usersService.searchAndPaginate(options, search);
+    } else {
+      users = await this.usersService.paginate(options);
+    }
+
+    // const users = await this.usersService.paginate(options);
+    return users;
+    // return this.usersService.paginate({
+    //   page,
+    //   limit,
+    // });
   }
 }
