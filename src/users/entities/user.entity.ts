@@ -1,7 +1,7 @@
 import { getIdColumnDecorator } from 'src/utils/helper';
 import { Entity, BaseEntity, Column } from 'typeorm';
 
-const databaseType = process.env.DB_TYPE || 'mongo';
+const databaseType = process.env.DB_TYPE || 'postgres';
 @Entity({ database: databaseType })
 export class User extends BaseEntity {
   @getIdColumnDecorator()

@@ -12,6 +12,8 @@ import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { determineDatabaseModule } from './utils/helper';
 import { RoleModule } from './role/role.module';
 import { CaslModule } from './casl/casl.module';
+import { LayoutModule } from './layout/layout.module';
+import { SettingsModule } from './settings/settings.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
@@ -21,6 +23,8 @@ import { CaslModule } from './casl/casl.module';
     UsersModule,
     RoleModule,
     CaslModule,
+    LayoutModule,
+    SettingsModule,
   ],
   controllers: [AppController],
   providers: [

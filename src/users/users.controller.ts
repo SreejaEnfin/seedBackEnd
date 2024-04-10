@@ -3,36 +3,46 @@ import {
   Get,
   Post,
   Body,
-  Patch,
-  Param,
-  Delete,
   Request,
   Query,
   DefaultValuePipe,
   ParseIntPipe,
-  ForbiddenException,
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, UserDto } from './dto/create-user.dto';
 import { Public } from 'src/auth/auth.decorator';
 import { CheckPolicies } from 'src/casl/casl.decorator';
-import { AppAbility, CaslAbilityFactory } from 'src/casl/casl-ability.factory/casl-ability.factory';
+import {
+  AppAbility,
+  CaslAbilityFactory,
+} from 'src/casl/casl-ability.factory/casl-ability.factory';
 import { PoliciesGuard } from 'src/casl/policies.guard';
-import { Pagination } from 'nestjs-typeorm-paginate';
+import { Pagination, IPaginationOptions } from 'nestjs-typeorm-paginate';
 import { User } from './entities/user.entity';
+import { ObjectId } from 'mongodb';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService, private caslAbilityFactory: CaslAbilityFactory) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private caslAbilityFactory: CaslAbilityFactory,
+  ) {}
 
   @Get('profile')
-  getProfile(@Request() req) {
-    const ability = this.caslAbilityFactory.createForUser(req.user);
-    if(ability.can('exportUsers', 'users')) {
-      return this.usersService.findByKeyword("joh");
+  // getProfile(@Request() req) {
+  //   const ability = this.caslAbilityFactory.createForUser(req.user);
+  //   if(ability.can('exportUsers', 'users')) {
+  //     return this.usersService.findByKeyword("joh");
+  //   } else {
+  //     throw new ForbiddenException('Not allowed');
+  // }
+  getProfile(@Request() request) {
+    if (process.env.DB_TYPE === 'postgres') {
+      return this.usersService.findOne(request.user._id);
     } else {
-      throw new ForbiddenException('Not allowed');
+      const objectId = new ObjectId(request.user._id);
+      return this.usersService.findOne(objectId);
     }
   }
 
@@ -41,18 +51,33 @@ export class UsersController {
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
-  
   @Get()
   @UseGuards(PoliciesGuard)
   @CheckPolicies((ability: AppAbility) => ability.can('viewUsers', 'users'))
-  findAll(
+  async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit = 10,
+    @Query('search') search?: string,
   ): Promise<Pagination<User>> {
     limit = limit > 100 ? 100 : limit;
-    return this.usersService.paginate({
+    const options: IPaginationOptions = {
       page,
       limit,
-    });
+    };
+
+    let users: Pagination<UserDto>;
+
+    if (search) {
+      users = await this.usersService.searchAndPaginate(options, search);
+    } else {
+      users = await this.usersService.paginate(options);
+    }
+
+    // const users = await this.usersService.paginate(options);
+    return users;
+    // return this.usersService.paginate({
+    //   page,
+    //   limit,
+    // });
   }
 }

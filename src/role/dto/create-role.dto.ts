@@ -1,3 +1,5 @@
+import { RoleType } from '../entities/role.entity';
+
 export class AclDto {
   users: {
     viewUsers: { label: string; permission: boolean };
@@ -21,5 +23,6 @@ export class AclDto {
 
 export class CreateRoleDto {
   name: string;
+  roleType: RoleType;
   acl: AclDto;
 }

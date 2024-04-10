@@ -1,4 +1,10 @@
 export class CreateTodoDto {
-  title: string;
-  status: string;
+  user: User[];
+}
+
+export interface User {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
 }
