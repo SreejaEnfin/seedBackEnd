@@ -32,6 +32,8 @@ export class AuthGuard implements CanActivate {
       return true;
     }
     const request = context.switchToHttp().getRequest();
+    // console.log(request.headers.authorization);
+    // console.log(' ');
     const token = this.extractTokenFromHeader(request);
     if (!token) {
       throw new UnauthorizedException();
@@ -44,36 +46,43 @@ export class AuthGuard implements CanActivate {
       // 💡 We're assigning the payload to the request object here
       // so that we can access it in our route handlers
       let aclObject = {};
-      const user = await this.usersService.findOne(payload._id);
+      // const user = await this.usersService.findOne(payload._id);
+      // console.log('user found............');
+      // console.log(user);
+      // console.log(' ');
 
-      if(user.roleIds?.length > 0) {
-        const roles = await this.roleService.findByIds(user.roleIds);
-  
-        const aclArray = [user.acl, ...roles.map(r => r.acl)].filter(x => x);
-  
-        for(const acl of aclArray) {
-          const aclKeys = Object.keys(acl);
-          for(const aclKey of aclKeys) {
-            if(!aclObject[aclKey]) {
-              aclObject[aclKey] = {};
-            }
-            const aclFeatKeys = Object.keys(acl[aclKey]);
-            for(const aclFeatKey of aclFeatKeys) {
-              if(!aclObject[aclKey][aclFeatKey]) {
-                aclObject[aclKey][aclFeatKey] = { ...acl[aclKey][aclFeatKey] };
-              } else if(acl[aclKey][aclFeatKey].permission) {
-                aclObject[aclKey][aclFeatKey].permission = true;
-              }
-            }
-          }
-        }
-      }
+      // if (user.roleIds?.length > 0) {
+      //   console.log(user.roleIds, 'roleIdss.......');
+      //   const userRoleId = user.roleIds[0];
+      //   console.log(userRoleId);
+      //   const roles = await this.roleService.findByIds(user.roleIds);
+      //   console.log(roles, 'roles............');
+      //   const aclArray = [user.acl, ...roles.map((r) => r.acl)].filter(
+      //     (x) => x,
+      //   );
+      //   for (const acl of aclArray) {
+      //     const aclKeys = Object.keys(acl);
+      //     for (const aclKey of aclKeys) {
+      //       if (!aclObject[aclKey]) {
+      //         aclObject[aclKey] = {};
+      //       }
+      //       const aclFeatKeys = Object.keys(acl[aclKey]);
+      //       for (const aclFeatKey of aclFeatKeys) {
+      //         if (!aclObject[aclKey][aclFeatKey]) {
+      //           aclObject[aclKey][aclFeatKey] = { ...acl[aclKey][aclFeatKey] };
+      //         } else if (acl[aclKey][aclFeatKey].permission) {
+      //           aclObject[aclKey][aclFeatKey].permission = true;
+      //         }
+      //       }
+      //     }
+      //   }
+      // }
 
       // console.log(aclObject);
-      
-      request['user'] = { ...payload, acl: aclObject};
-    } catch(e) {
-      console.log(e)
+
+      request['user'] = { ...payload, acl: aclObject };
+    } catch (e) {
+      console.log(e);
       throw new UnauthorizedException();
     }
     return true;

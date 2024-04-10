@@ -1,5 +1,14 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { CreateUserDto, UserDto } from './dto/create-user.dto';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  CreateUserDto,
+  ForgotPasswordDTO,
+  ResetPasswordDTO,
+  UserDto,
+} from './dto/create-user.dto';
 import { ILike, MongoRepository, Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -14,17 +23,19 @@ import {
   Pagination,
   paginate,
 } from 'nestjs-typeorm-paginate';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(User) private mongoUserRepository: MongoRepository<User>,
+    private jwtService: JwtService,
   ) {}
 
   async findOne(_id: any): Promise<User> {
     // await delCache(_id)
-    const getUserById = (_id: any) => {
+    const getUserById = async (_id: any) => {
       if (isMongoDB) {
         return this.mongoUserRepository.findOne({
           where: { _id: new ObjectId(_id) },
@@ -63,6 +74,7 @@ export class UsersService {
       });
     }
   }
+
   // async findOne(_id: any): Promise<any> {
   //   const user = await this.userRepository.findOneBy({ _id: _id });
   //   if (user) {
@@ -87,6 +99,24 @@ export class UsersService {
   //   return getCache(`${email}`, getUserByEmail, email);
   // }
 
+  async Validate(_id: any): Promise<any> {
+    const user = await this.userRepository.findOneBy({ _id: _id });
+    if (user) {
+      return {
+        user: {
+          uuid: user._id,
+          role: 'user',
+          data: {
+            displayName: user.firstName + ' ' + user.lastName,
+            email: user.email,
+          },
+        },
+      };
+    } else {
+      throw new NotFoundException('user not found');
+    }
+  }
+
   async create(createUserDto: CreateUserDto) {
     const { email, password } = createUserDto;
     const user = await this.userRepository.findOne({ where: { email } });
@@ -96,7 +126,6 @@ export class UsersService {
     const saltRounds = 10;
     const hash = await bcrypt.hash(password, saltRounds);
     createUserDto.password = hash;
-    createUserDto.roleId = '660bde226f92f9623487271a';
     const newUser = await this.userRepository.save(createUserDto);
     return { ...newUser, password: undefined };
   }
@@ -106,36 +135,6 @@ export class UsersService {
       select: ['_id', 'firstName', 'lastName', 'email'],
     });
   }
-
-  // findOne(id: number) {
-  //   return `This action returns a #${id} user`;
-  // }
-
-  // paginate(options: IPaginationOptions): Promise<Pagination<User>> {
-  //   return paginate<User>(this.userRepository, options);
-  // }
-  // async paginate(
-  //   options: IPaginationOptions,
-  //   search: SearchUserDTO,
-  // ): Promise<Pagination<UserDto>> {
-  //   const queryBuilder = this.userRepository.createQueryBuilder('user');
-
-  //   if (search) {
-  //     queryBuilder.where(
-  //       'user.firstName LIKE :search OR user.lastName LIKE :search OR user.email LIKE :search',
-  //       {
-  //         search: `%${search}`,
-  //       },
-  //     );
-  //   }
-  //   console.log(search);
-  //   const { items, ...paginationInfo } = await paginate<User>(
-  //     queryBuilder,
-  //     options,
-  //   );
-  //   const users = items.map((user) => new UserDto(user)); // Map to UserDto
-  //   return { items: users, ...paginationInfo };
-  // }
 
   async paginate(options: IPaginationOptions): Promise<Pagination<UserDto>> {
     const { items, ...paginationInfo } = await paginate<User>(
@@ -205,5 +204,40 @@ export class UsersService {
         },
       };
     }
+  }
+
+  async forgotpassword(forgotPassword: ForgotPasswordDTO) {
+    console.log('Hitting.......');
+    const user = await this.findOneByEmail(forgotPassword.email);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const payload = {
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+    };
+
+    const access_token = await this.jwtService.signAsync(payload);
+    console.log(access_token);
+
+    const resetPasswordURL = `http://localhost:3000/reset-password/${access_token}`;
+    console.log(resetPasswordURL);
+    return resetPasswordURL;
+  }
+
+  async resetPassword(resetPassword: ResetPasswordDTO, _id: any) {
+    console.log(_id);
+    const user = await this.userRepository.findOne({ where: { _id } });
+    console.log(user, 'user....');
+
+    if (user) {
+      const saltRounds = 10;
+      const hash = await bcrypt.hash(resetPassword.password, saltRounds);
+      user.password = hash;
+    }
+    await this.userRepository.save(user);
+    const { password, ...rest } = user;
+    return rest;
   }
 }

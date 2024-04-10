@@ -10,7 +10,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto, UserDto } from './dto/create-user.dto';
+import {
+  CreateUserDto,
+  ForgotPasswordDTO,
+  ResetPasswordDTO,
+  UserDto,
+} from './dto/create-user.dto';
 import { Public } from 'src/auth/auth.decorator';
 import { CheckPolicies } from 'src/casl/casl.decorator';
 import {
@@ -19,7 +24,6 @@ import {
 } from 'src/casl/casl-ability.factory/casl-ability.factory';
 import { PoliciesGuard } from 'src/casl/policies.guard';
 import { Pagination, IPaginationOptions } from 'nestjs-typeorm-paginate';
-import { User } from './entities/user.entity';
 import { ObjectId } from 'mongodb';
 
 @Controller('users')
@@ -39,10 +43,10 @@ export class UsersController {
   // }
   getProfile(@Request() request) {
     if (process.env.DB_TYPE === 'postgres') {
-      return this.usersService.findOne(request.user._id);
+      return this.usersService.Validate(request.user._id);
     } else {
       const objectId = new ObjectId(request.user._id);
-      return this.usersService.findOne(objectId);
+      return this.usersService.Validate(objectId);
     }
   }
 
@@ -51,14 +55,15 @@ export class UsersController {
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
+
   @Get()
-  @UseGuards(PoliciesGuard)
-  @CheckPolicies((ability: AppAbility) => ability.can('viewUsers', 'users'))
+  // @UseGuards(PoliciesGuard)
+  // @CheckPolicies((ability: AppAbility) => ability.can('viewUsers', 'users'))
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit = 10,
     @Query('search') search?: string,
-  ): Promise<Pagination<User>> {
+  ): Promise<Pagination<UserDto>> {
     limit = limit > 100 ? 100 : limit;
     const options: IPaginationOptions = {
       page,
@@ -72,12 +77,21 @@ export class UsersController {
     } else {
       users = await this.usersService.paginate(options);
     }
-
-    // const users = await this.usersService.paginate(options);
     return users;
-    // return this.usersService.paginate({
-    //   page,
-    //   limit,
-    // });
+  }
+  @Public()
+  @Post('password/forgot')
+  forgotPassword(@Body() forgotPasswordDTO: ForgotPasswordDTO) {
+    return this.usersService.forgotpassword(forgotPasswordDTO);
+  }
+
+  @Post('reset/password')
+  resetPassword(@Request() request, @Body() resetPassword: ResetPasswordDTO) {
+    if (process.env.DB_TYPE === 'postgres') {
+      return this.usersService.resetPassword(resetPassword, request.user._id);
+    } else {
+      const objectId = new ObjectId(request.user._id);
+      return this.usersService.resetPassword(resetPassword, objectId);
+    }
   }
 }

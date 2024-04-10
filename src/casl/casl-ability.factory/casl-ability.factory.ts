@@ -1,7 +1,14 @@
-import { AbilityBuilder, AbilityClass, ExtractSubjectType, InferSubjects, MongoAbility, createMongoAbility } from "@casl/ability";
-import { Action } from "../casl.enum";
-import { Injectable } from "@nestjs/common";
-import { User } from "src/users/entities/user.entity";
+import {
+  AbilityBuilder,
+  AbilityClass,
+  ExtractSubjectType,
+  InferSubjects,
+  MongoAbility,
+  createMongoAbility,
+} from '@casl/ability';
+import { Action } from '../casl.enum';
+import { Injectable } from '@nestjs/common';
+import { User } from 'src/users/entities/user.entity';
 
 export type AppAbility = MongoAbility;
 
@@ -17,10 +24,10 @@ export class CaslAbilityFactory {
     // }
 
     const aclKeys = user.acl ? Object.keys(user.acl) : [];
-    for(const aclKey of aclKeys) {
+    for (const aclKey of aclKeys) {
       const aclFeatureKeys = Object.keys(user.acl[aclKey]);
-      for(const aclFeatureKey of aclFeatureKeys) {
-        if(user.acl[aclKey][aclFeatureKey].permission) {
+      for (const aclFeatureKey of aclFeatureKeys) {
+        if (user.acl[aclKey][aclFeatureKey].permission) {
           can(aclFeatureKey, aclKey);
         } else {
           cannot(aclFeatureKey, aclKey);

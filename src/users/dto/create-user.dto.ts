@@ -5,7 +5,7 @@ export class CreateUserDto {
   lastName: string;
   email: string;
   password: string;
-  roleId: string;
+  roleIds: string[];
 }
 
 export class UserDto {
@@ -13,7 +13,7 @@ export class UserDto {
   firstName: string;
   lastName: string;
   email: string;
-  roleId: string;
+  roleIds: string[];
 
   constructor(user?: Partial<User>) {
     if (user) {
@@ -21,7 +21,8 @@ export class UserDto {
       this.firstName = user.firstName;
       this.lastName = user.lastName;
       this.email = user.email;
-      this.roleId = user.roleId;
+      // TODO Temp typescript fix
+      this.roleIds = user.roleIds;
     }
   }
 }
@@ -30,4 +31,12 @@ export class SearchUserDTO {
   firstName?: string;
   lastName?: string;
   email?: string;
+}
+
+export class ForgotPasswordDTO {
+  email: string;
+}
+
+export class ResetPasswordDTO {
+  password: string;
 }
